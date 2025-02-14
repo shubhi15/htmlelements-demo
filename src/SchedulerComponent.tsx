@@ -26,7 +26,7 @@ const SchedulerComponent = () => {
 
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  
+
   const measureRenderTime = (updateFunction, opType) => {
     const start = performance.now();
 
@@ -92,12 +92,13 @@ const SchedulerComponent = () => {
     time.textContent = `${new Intl.DateTimeFormat(scheduler.locale, {
       hour: scheduler.hourFormat,
       minute: scheduler.minuteFormat,
-    }).format(eventObj.dateStart)} to ${
-      new Intl.DateTimeFormat(scheduler.locale, {
+    }).format(eventObj.dateStart)} to ${new Intl.DateTimeFormat(
+      scheduler.locale,
+      {
         hour: scheduler.hourFormat,
         minute: scheduler.minuteFormat,
-      }).format(eventObj.dateEnd)
-    }`;
+      }
+    ).format(eventObj.dateEnd)}`;
 
     customDiv.textContent = eventObj.customAttr
       ? `| ${eventObj.customAttr}`
@@ -113,18 +114,7 @@ const SchedulerComponent = () => {
     return eventContent;
   };
 
-  const views = [
-    "day",
-    {
-      type: "week",
-      hideWeekend: true,
-    },
-    {
-      type: "month",
-      hideWeekend: true,
-    },
-    "agenda",
-  ];
+  const views = ["day", "week", "month", "agenda"];
 
   const firstDayOfWeek = 1;
 
@@ -261,8 +251,8 @@ const SchedulerComponent = () => {
               onDateChange={handleDateChange}
               maxEventsPerCell={2}
               eventTemplate={eventTemplate}
-              disableDialog={true} 
-              onItemDoubleClick={handleEventClick}
+             
+            
             ></Scheduler>
           </section>
         </div>
