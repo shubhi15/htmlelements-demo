@@ -1,0 +1,41 @@
+.scheduler-container {
+  display: flex;
+  height: 100vh; /* Full viewport height */
+  /* width: 100%; */
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.content {
+  display: flex;
+  width:100%
+}
+
+#sideB {
+  flex:1;
+  min-height: 100%
+}
+
+#scheduler {
+  height: 100%
+}
+
+/* Adjust calendar size */
+.react-calendar {
+  width: 100%; /* Make it fit inside the sidebar */
+  max-width: 280px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+}
+
+/* Heatmap Colors */
+.high-density { background-color: #ff5733 !important; } /* Dark Red */
+.medium-density { background-color: #ffa500 !important; } /* Orange */
+.low-density { background-color: #ffff99 !important; } /* Light Yellow */
+
+
+.event-content-wrapper {
+  font-size: 11px;
+}
