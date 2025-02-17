@@ -8,22 +8,18 @@ import {
 } from "smart-webcomponents-react/button";
 import { Calendar } from "smart-webcomponents-react/calendar";
 import { Input } from "smart-webcomponents-react/input";
-import { Tree, TreeItem, TreeItemsGroup } from "smart-webcomponents-react/tree";
 import { Scheduler } from "smart-webcomponents-react/scheduler";
-import { generateEvents } from "./utils";
+import { generateEvents, getGanttDataSource } from "./utils";
 import { people } from "./constants";
 import Legend from "./Legend/Legend";
 import EventCount from "./EventCount/EventCount";
-import MoreEventIndicator from "./MoreEventIndicator/MoreEventIndicator";
+import { GanttChart } from "smart-webcomponents-react/ganttchart";
+import { DropDownList, ListItem } from "smart-webcomponents-react/dropdownlist";
 
 const SchedulerComponent = () => {
   const [visiblePeople, setVisiblePeople] = useState<string[]>(
     people.map((p) => p.name)
   );
-  const [renderTime, setRenderTime] = useState<string[]>(
-    people.map((p) => p.name)
-  );
-
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
@@ -41,12 +37,21 @@ const SchedulerComponent = () => {
     });
   };
   const [eventCount, setEventCount] = useState(100);
-  const scheduler = useRef(null);
+  const schedulerRef = useRef(null);
+  const ganttRef = useRef(null);
   const calendar = useRef(null);
   const primaryContainer = useRef(null);
   const [view, setView] = useState("month");
 
+  const [activeView, setActiveView] = useState("month");
+
   const today = new Date();
+  const taskColumns = [
+    {
+      label: "Tasks",
+      value: "label",
+    },
+  ];
 
   const [nonworkingDays, setNonworkingDays] = useState(
     getPastThreeWeekdays(today.getDay())
@@ -124,6 +129,17 @@ const SchedulerComponent = () => {
 
   const scrollButtonsPosition = "far";
 
+  const schedulerStyle = {
+    display: activeView === "gantt" ? "none" : "block",
+    height: "600px",
+  };
+
+  const ganttStyle = {
+    display: activeView === "gantt" ? "block" : "none",
+    height: "600px",
+    width: "100%", // Ensure the Gantt chart takes full widt
+  };
+
   function getPastThreeWeekdays(weekday) {
     let weekdays = [];
 
@@ -152,13 +168,13 @@ const SchedulerComponent = () => {
   };
 
   const addNew = () => {
-    scheduler.current.openWindow({
+    schedulerRef.current.openWindow({
       class: "event",
     });
   };
 
   const handleCalendarChange = (event) => {
-    scheduler.current.dateCurrent = event.detail.value;
+    schedulerRef.current.dateCurrent = event.detail.value;
   };
 
   const handleDateChange = (event) => {
@@ -166,7 +182,7 @@ const SchedulerComponent = () => {
   };
 
   useEffect(() => {
-    if (scheduler.current.props?.dataSource) {
+    if (schedulerRef.current.props?.dataSource) {
       const events = generateEvents(eventCount);
       const datasrc = events.filter((event) =>
         visiblePeople.includes(event.personId)
@@ -174,6 +190,15 @@ const SchedulerComponent = () => {
       measureRenderTime(() => setData(datasrc), "On filtering");
     }
   }, [visiblePeople]);
+
+  useEffect(() => {
+    if (activeView === "gantt") {
+      // Option 1: If the GanttChart component exposes an updateLayout method, call it:
+      if (ganttRef.current && ganttRef.current.updateLayout) {
+        ganttRef.current.updateLayout();
+      }
+    }
+  }, [activeView]);
 
   useEffect(() => {
     const events = generateEvents(eventCount); // Generate 10,000 events
@@ -192,13 +217,13 @@ const SchedulerComponent = () => {
     const count = parseInt(e.target.value, 10);
     setEventCount(count);
   };
-  const handleEventClick = (event) => {
-    setSelectedEvent(event.detail);
-    setDialogOpen(true);
+  const handleChange = (event) => {
+    ganttRef.current.view = event.detail.label;
   };
 
   const onViewChange = (event) => {
     setView(event?.detail?.value);
+    setActiveView(event?.detail?.value);
   };
 
   return (
@@ -229,11 +254,44 @@ const SchedulerComponent = () => {
                 eventCount={eventCount}
                 handleEventCountChange={handleEventCountChange}
               />
+               {activeView !== "gantt" && (
+              <>
+                <Button
+                  onClick={() => setActiveView("gantt")}
+                  style={{margin: '10px' }}
+                >
+                  Timeline Gantt View
+                </Button>
+              </>
+            )}
+
+            {activeView === "gantt" && (
+              <>
+                <Button
+                  onClick={() => setActiveView("month")}
+                  style={{margin: '10px' }}
+                >
+                  Switch to Scheduler view
+                </Button>
+                <div className="options">
+                  <div className="option">
+                    <h3>Select view:</h3>
+                    <DropDownList onChange={handleChange}>
+                      <ListItem>year</ListItem>
+                      <ListItem selected>month</ListItem>
+                      <ListItem>week</ListItem>
+                      <ListItem>day</ListItem>
+                    </DropDownList>
+                  </div>
+                </div>
+              </>
+            )}
             </div>
+           
           </section>
           <section id="sideB">
             <Scheduler
-              ref={scheduler}
+              ref={schedulerRef}
               id="scheduler"
               dataSource={data}
               view={view}
@@ -251,9 +309,17 @@ const SchedulerComponent = () => {
               onDateChange={handleDateChange}
               maxEventsPerCell={2}
               eventTemplate={eventTemplate}
-             
-            
+              style={schedulerStyle}
             ></Scheduler>
+
+            <GanttChart
+              ref={ganttRef}
+              dataSource={data}
+              taskColumns={taskColumns}
+              id="gantt"
+              style={ganttStyle}
+              view={"day"}
+            ></GanttChart>
           </section>
         </div>
       </div>
