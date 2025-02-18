@@ -18,7 +18,7 @@ import { DropDownList, ListItem } from "smart-webcomponents-react/dropdownlist";
 import GanttComponent from "./GanttComponent";
 
 const SchedulerComponent = () => {
-  const [visiblePeople, setVisiblePeople] = useState<string[]>(
+  const [visiblePeople, setVisiblePeople] = useState<number[]>(
     people.map((p) => p.id)
   );
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -230,7 +230,7 @@ const SchedulerComponent = () => {
     measureRenderTime(() => setData(events), "On Event Count Update");
   }, [eventCount]);
 
-  const togglePersonVisibility = (personId: string) => {
+  const togglePersonVisibility = (personId: number) => {
     setVisiblePeople((prev) =>
       prev.includes(personId)
         ? prev.filter((id) => id !== personId)
