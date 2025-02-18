@@ -15,10 +15,11 @@ import Legend from "./Legend/Legend";
 import EventCount from "./EventCount/EventCount";
 import { GanttChart } from "smart-webcomponents-react/ganttchart";
 import { DropDownList, ListItem } from "smart-webcomponents-react/dropdownlist";
+import GanttComponent from "./GanttComponent";
 
 const SchedulerComponent = () => {
   const [visiblePeople, setVisiblePeople] = useState<string[]>(
-    people.map((p) => p.name)
+    people.map((p) => p.id)
   );
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -46,12 +47,6 @@ const SchedulerComponent = () => {
   const [activeView, setActiveView] = useState("month");
 
   const today = new Date();
-  const taskColumns = [
-    {
-      label: "Tasks",
-      value: "label",
-    },
-  ];
 
   const [nonworkingDays, setNonworkingDays] = useState(
     getPastThreeWeekdays(today.getDay())
@@ -119,7 +114,37 @@ const SchedulerComponent = () => {
     return eventContent;
   };
 
-  const views = ["day", "week", "month", "agenda"];
+  useEffect(() => {
+    // Simulate real-time updates every 10 seconds
+    const interval = setInterval(() => {
+      const now = new Date();
+      const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000); // Add 1 hour
+      const newEvent = {
+      
+
+        id: String(new Date().getTime()),
+            dateStart: now,
+            dateEnd: oneHourLater,
+            label: `New Event`,
+            resourceId: people[0].id, // Assign person id as resource
+            backgroundColor: people[0].color,
+      };
+
+      // Append new event to current events
+      setData((prevEvents) => [...prevEvents, newEvent]);
+    }, 10000);
+
+    return () => clearInterval(interval); // Clean up the interval on unmount
+  }, []);
+
+
+  const views = [
+    { type: "day" },
+    { type: "week" },
+    { type: "month" },
+    { type: "agenda" },
+    { type: "timelineDay" },
+  ];
 
   const firstDayOfWeek = 1;
 
@@ -185,7 +210,7 @@ const SchedulerComponent = () => {
     if (schedulerRef.current.props?.dataSource) {
       const events = generateEvents(eventCount);
       const datasrc = events.filter((event) =>
-        visiblePeople.includes(event.personId)
+        visiblePeople.includes(event.resourceId)
       );
       measureRenderTime(() => setData(datasrc), "On filtering");
     }
@@ -254,40 +279,10 @@ const SchedulerComponent = () => {
                 eventCount={eventCount}
                 handleEventCountChange={handleEventCountChange}
               />
-               {activeView !== "gantt" && (
-              <>
-                <Button
-                  onClick={() => setActiveView("gantt")}
-                  style={{margin: '10px' }}
-                >
-                  Timeline Gantt View
-                </Button>
-              </>
-            )}
+            
 
-            {activeView === "gantt" && (
-              <>
-                <Button
-                  onClick={() => setActiveView("month")}
-                  style={{margin: '10px' }}
-                >
-                  Switch to Scheduler view
-                </Button>
-                <div className="options">
-                  <div className="option">
-                    <h3>Select view:</h3>
-                    <DropDownList onChange={handleChange}>
-                      <ListItem>year</ListItem>
-                      <ListItem selected>month</ListItem>
-                      <ListItem>week</ListItem>
-                      <ListItem>day</ListItem>
-                    </DropDownList>
-                  </div>
-                </div>
-              </>
-            )}
+            
             </div>
-           
           </section>
           <section id="sideB">
             <Scheduler
@@ -310,16 +305,47 @@ const SchedulerComponent = () => {
               maxEventsPerCell={2}
               eventTemplate={eventTemplate}
               style={schedulerStyle}
+              resources={[
+                {
+                  label: "Resources",
+                  value: "resourceId",
+                  dataSource: people,
+                },
+              ]}
+              
             ></Scheduler>
+            <h4>Scheduler Timeline View</h4>
 
-            <GanttChart
-              ref={ganttRef}
+            <Scheduler
+              ref={schedulerRef}
+              id="scheduler"
               dataSource={data}
-              taskColumns={taskColumns}
-              id="gantt"
-              style={ganttStyle}
-              view={"day"}
-            ></GanttChart>
+              view={view}
+              views={["timelineDay"]}
+              onViewChange={onViewChange}
+              nonworkingDays={nonworkingDays}
+              firstDayOfWeek={firstDayOfWeek}
+              disableDateMenu={disableDateMenu}
+              currentTimeIndicator={currentTimeIndicator}
+              scrollButtonsPosition={scrollButtonsPosition}
+              onDragEnd={updateData}
+              onResizeEnd={updateData}
+              onItemUpdate={updateData}
+              onItemRemove={updateData}
+              onDateChange={handleDateChange}
+              maxEventsPerCell={2}
+              eventTemplate={eventTemplate}
+              style={schedulerStyle}
+              resources={[
+                {
+                  label: "Resources",
+                  value: "resourceId",
+                  dataSource: people,
+                },
+              ]}
+              groupOrientation="vertical"
+              groups={["resourceId"]}
+            ></Scheduler>
           </section>
         </div>
       </div>

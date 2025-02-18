@@ -29,7 +29,7 @@ export const generateEvents = (eventCount: number) => {
             dateEnd: end,
             label: `Event ${i + 1}`,
             backgroundColor: person.color, // Assign background color from person
-            personId: person.name,
+            resourceId: person.id, // Assign person id as resource
             type: eventType,
             customAttr: 'New Attr'
         });
@@ -110,5 +110,7 @@ return [{
 }
 ];
 }
+
+
 
 

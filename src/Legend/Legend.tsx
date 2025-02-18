@@ -9,8 +9,8 @@ const Legend = ({visiblePeople, togglePersonVisibility}) => {
           <label key={person.name} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <input
               type="checkbox"
-              checked={visiblePeople.includes(person.name)}
-              onChange={() => togglePersonVisibility(person.name)}
+              checked={visiblePeople.includes(person.id)}
+              onChange={() => togglePersonVisibility(person.id)}
             />
             <span
               style={{
